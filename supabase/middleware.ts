@@ -48,7 +48,7 @@ export const updateSession = async (request: NextRequest) => {
     }
 
     if (request.nextUrl.pathname === "/" && !error) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
     return response;
