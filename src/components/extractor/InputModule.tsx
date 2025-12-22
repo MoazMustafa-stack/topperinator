@@ -38,6 +38,7 @@ export default function InputModule({
   
   useEffect(() => {
     if (!url) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsValid(null);
       setMetadata(null);
       return;

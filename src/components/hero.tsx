@@ -19,7 +19,7 @@ export default function Hero() {
             </h1>
             
             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Empower your team with our cutting-edge solution. Join industry leaders who've already transformed their workflow.
+              Empower your team with our cutting-edge solution. Join industry leaders who&apos;ve already transformed their workflow.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

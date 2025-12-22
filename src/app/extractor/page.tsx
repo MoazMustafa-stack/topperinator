@@ -9,6 +9,7 @@ import StatsDisplay from "@/components/extractor/StatsDisplay";
 import HelpSection from "@/components/extractor/HelpSection";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { extractVideoId, extractVideoIdFromShortUrl } from "@/utils/youtube";
 
 export type InputMode = "single" | "playlist" | "channel";
 
@@ -54,55 +55,85 @@ export default function ExtractorPage() {
   const [results, setResults] = useState<TranscriptResult[]>([]);
 
   const handleExtract = async () => {
-    setIsExtracting(true);
-    setProgress([]);
-    setResults([]);
-    
-    // Simulated extraction process
-    const mockVideos = [
-      { id: "1", title: "Introduction to Machine Learning", thumbnail: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&q=80" },
-      { id: "2", title: "Deep Learning Fundamentals", thumbnail: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=400&q=80" },
-    ];
-
-    for (const video of mockVideos) {
-      setProgress(prev => [...prev, {
-        videoId: video.id,
-        title: video.title,
-        status: "processing",
-        message: `Extracting transcript for "${video.title}"...`
-      }]);
-
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const success = Math.random() > 0.2;
-      
-      setProgress(prev => prev.map(p => 
-        p.videoId === video.id 
-          ? { ...p, status: success ? "success" : "failed", message: success ? "Extraction complete" : "Transcript unavailable" }
-          : p
-      ));
-
-      if (success) {
-        setResults(prev => [...prev, {
-          ...video,
-          transcript: "This is a sample transcript content that would be extracted from the YouTube video. It contains the spoken words from the video in text format.",
-          wordCount: 1247,
-          status: "success"
-        }]);
-      } else {
-        setResults(prev => [...prev, {
-          ...video,
-          transcript: "",
-          wordCount: 0,
-          status: "failed",
-          error: "Transcript unavailable"
-        }]);
-      }
+    const videoId = extractVideoId(url) || extractVideoIdFromShortUrl(url);
+    if (!videoId) {
+      alert("Invalid YouTube URL");
+      return;
     }
 
-    setIsExtracting(false);
-  };
+    setIsExtracting(true);
+    setProgress([{
+      videoId,
+      title: metadata?.title || 'Processing...',
+      status: 'processing',
+      message: 'Extracting transcript...'
+    }]);
 
+    try {
+      const response = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoId: videoId,
+          options: options
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setResults([{
+          id: videoId,
+          title: metadata?.title || 'Video',
+          thumbnail: metadata?.thumbnail || '',
+          transcript: data.transcript,
+          wordCount: data.wordCount,
+          status: 'success'
+        }]);
+        setProgress([{
+          videoId,
+          title: metadata?.title || 'Video',
+          status: 'success',
+          message: 'Transcript extracted successfully'
+        }]);
+      } else {
+        setResults([{
+          id: videoId,
+          title: metadata?.title || 'Video',
+          thumbnail: metadata?.thumbnail || '',
+          transcript: '',
+          wordCount: 0,
+          status: 'failed',
+          error: data.error
+        }]);
+        setProgress([{
+          videoId,
+          title: metadata?.title || 'Video',
+          status: 'failed',
+          message: data.error || 'Failed to extract transcript'
+        }]);
+      }
+    } catch (error) {
+      setResults([{
+        id: videoId,
+        title: metadata?.title || 'Video',
+        thumbnail: metadata?.thumbnail || '',
+        transcript: '',
+        wordCount: 0,
+        status: 'failed',
+        error: 'Network error'
+      }]);
+      setProgress([{
+        videoId,
+        title: metadata?.title || 'Video',
+        status: 'failed',
+        message: 'Network error'
+      }]);
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-[#1a1a1a] scanline-bg pb-32">
       <div className="max-w-[1200px] mx-auto px-6 py-12">
@@ -115,11 +146,11 @@ export default function ExtractorPage() {
         </Link>
         
         <header className="mb-12">
-          <h1 className="text-[#c4ff0e] font-black text-5xl tracking-tight uppercase mb-4" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <h1 className="text-[#c4ff0e] font-black text-5xl tracking-tight uppercase mb-4 font-mono">
             YOUTUBE TRANSCRIPT EXTRACTOR
           </h1>
           <p className="text-white/70 font-mono text-sm">
-            Extract transcripts at scale. Built for researchers, creators, and AI enthusiasts.
+            Extract transcripts at scale. Built for students and teachers.
           </p>
         </header>
 

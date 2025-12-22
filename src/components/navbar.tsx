@@ -11,10 +11,10 @@ export default async function Navbar() {
 
 
   return (
-    <nav className="w-full border-b border-gray-200 bg-white py-2">
+    <nav className="w-full border-b bg-[#1a1a1a] bg-[#1a1a1a] py-2">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <Link href="/" prefetch className="text-xl font-bold">
-          Logo
+        <Link href="/" prefetch className="text-xl font-bold text-lime-400">
+          topperInator
         </Link>
         <div className="flex gap-4 items-center">
           {user ? (
@@ -33,13 +33,13 @@ export default async function Navbar() {
             <>
               <Link
                 href="/sign-in"
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                className="px-4 py-2 text-sm font-medium text-white hover:text-lime-400"
               >
                 Sign In
               </Link>
               <Link
                 href="/sign-up"
-                className="px-4 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800"
+                className="px-4 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800 hover:text-lime-400"
               >
                 Sign Up
               </Link>

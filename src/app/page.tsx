@@ -1,9 +1,11 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import Navbar from "@/components/navbar";
 
 export default async function Home() {
   return (
     <div className="min-h-screen bg-[#1a1a1a] scanline-bg">
+      <Navbar />
       <div className="max-w-[1200px] mx-auto px-6 py-12">
         <header className="text-center py-20">
           <h1

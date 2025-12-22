@@ -17,6 +17,7 @@ export function UrlProvider({ children }: UrlProviderProps) {
     const isProxy = !baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1');
     
     // Store the URL for use in the form
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentUrl(baseUrl);
     
     // If we're using a proxy like ngrok, log for debugging
