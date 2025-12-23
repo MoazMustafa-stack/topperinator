@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { InputMode, TranscriptOptions, VideoMetadata } from "@/app/extractor/page";
 import { useEffect, useState } from "react";
+import { COLORS, API_ENDPOINTS, VALIDATION, YOUTUBE_PATTERNS } from "@/constants";
 import URLValidator from "./URLValidator";
 
 interface InputModuleProps {
@@ -35,31 +36,56 @@ export default function InputModule({
 }: InputModuleProps) {
   const [isValidating, setIsValidating] = useState(false);
   const [isValid, setIsValid] = useState<boolean | null>(null);
-  
+
+  const extractVideoId = (url: string): string | null => {
+    for (const pattern of YOUTUBE_PATTERNS.videoId) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+
+  const fetchVideoMetadata = async (videoId: string): Promise<VideoMetadata | null> => {
+    try {
+      const response = await fetch(`${API_ENDPOINTS.youtube.oembed}?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return {
+        id: videoId,
+        title: data.title,
+        thumbnail: data.thumbnail_url,
+        channelName: data.author_name,
+      };
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (!url) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsValid(null);
       setMetadata(null);
       return;
     }
 
     setIsValidating(true);
-    const timer = setTimeout(() => {
-      if (url.includes("youtube.com") || url.includes("youtu.be")) {
-        setIsValid(true);
-        setMetadata({
-          id: "mock-id",
-          title: "Sample Video Title",
-          thumbnail: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&q=80",
-          channelName: "Tech Channel",
-        });
+    const timer = setTimeout(async () => {
+      const videoId = extractVideoId(url);
+      if (videoId) {
+        const realMetadata = await fetchVideoMetadata(videoId);
+        if (realMetadata) {
+          setIsValid(true);
+          setMetadata(realMetadata);
+        } else {
+          setIsValid(false);
+          setMetadata(null);
+        }
       } else {
         setIsValid(false);
         setMetadata(null);
       }
       setIsValidating(false);
-    }, 500);
+    }, VALIDATION.debounceDelay);
 
     return () => clearTimeout(timer);
   }, [url, setMetadata]);

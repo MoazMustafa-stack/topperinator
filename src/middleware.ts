@@ -1,3 +1,7 @@
+// This middleware file has been consolidated.
+// Next.js middleware should be at the root level (/middleware.ts)
+// This file is no longer used and can be safely deleted.
+
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
