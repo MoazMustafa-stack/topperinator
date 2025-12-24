@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "backend:setup": "cd backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
+    "backend:dev": "cd backend && source venv/bin/activate && python main.py",
+    "backend:windows": "cd backend && venv\\Scripts\\activate && python main.py",
+    "dev:full": "concurrently \"npm run dev\" \"npm run backend:dev\"",
+    "dev:full:windows": "concurrently \"npm run dev\" \"npm run backend:windows\""
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -61,6 +66,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
     "tailwindcss": "^3.4.19",

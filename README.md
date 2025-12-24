@@ -1,159 +1,92 @@
 # Topper-inator
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.0.10-black?style=flat-square&logo=next.js)](https://nextjs.org)
-[![React](https://img.shields.io/badge/React-19.2.1-blue?style=flat-square&logo=react)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Latest-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.0-blue?style=flat-square&logo=tailwind-css)](https://tailwindcss.com)
+> **Never miss a lecture again** ✨ Extract YouTube transcripts instantly with a sleek, modern interface.
 
-A powerful web application for extracting YouTube transcripts at scale. Built with modern web technologies and designed for seamless transcript extraction from single videos, playlists, and entire channels.
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)](https://react.dev)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue?style=flat-square&logo=python)](https://python.org)
+[![Tailwind](https://img.shields.io/badge/Tailwind-CSS-blue?style=flat-square&logo=tailwind-css)](https://tailwindcss.com)
+
+## What is Topper-inator?
+
+A full-stack web application that transforms YouTube videos into readable transcripts. Perfect for students who want to:
+- 📚 Study lectures without watching the entire video
+- 🎯 Search through transcript content instantly
+- 📝 Export in multiple formats (TXT, JSON, SRT)
+- 🔐 Save your favorite transcripts securely
 
 ---
 
-## Features
+## Why Build This?
 
-**Video Transcript Extraction**
-- Extract transcripts from single YouTube videos
-- Batch process entire playlists
-- Scrape entire channel content
-- Multiple output formats (TXT, JSON, SRT)
-- Optional timestamp inclusion
-
-**User Authentication**
-- Secure authentication via Supabase
-- Protected dashboard with user profiles
-- Session management with middleware protection
-
-**Advanced Formatting**
-- Plain text export with formatting options
-- JSON structured data output
-- SRT subtitle format support
-- Configurable timestamp precision
+YouTube transcripts are goldmines for learning, but accessing them is clunky. Topper-inator makes it seamless—paste a link, get a transcript, study smarter. Built as a learning project showcasing modern full-stack development with Next.js and Python.
 
 ---
 
 ## Tech Stack
 
-**Frontend**
-- [Next.js 16](https://nextjs.org) - React framework with App Router
-- [React 19](https://react.dev) - UI library
-- [TypeScript](https://www.typescriptlang.org) - Type safety
-- [Tailwind CSS](https://tailwindcss.com) - Styling with custom theme
-- [shadcn/ui](https://ui.shadcn.com) - Pre-built UI components
-
-**Backend & Database**
-- [Supabase](https://supabase.com) - Authentication and PostgreSQL
-- Next.js API Routes - Serverless backend
-- Row Level Security (RLS) - Database protection
-
-**Libraries**
-- [youtube-transcript](https://www.npmjs.com/package/youtube-transcript) - Transcript fetching
-- [Lucide React](https://lucide.dev) - Icon library
+**Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui  
+**Backend**: FastAPI (Python), yt-dlp  
+**Database**: Supabase (Auth + PostgreSQL)  
+**Styling**: Custom green theme (#c4ff0e) with monospace typography
 
 ---
 
+## Features at a Glance
 
-## Usage
+✨ **Smart Extraction** - Pulls transcripts directly from YouTube with zero hassle  
+🎨 **Beautiful UI** - Modern, responsive design that feels great on any device  
+🔒 **Secure Auth** - User authentication via Supabase  
+📤 **Multiple Formats** - Export as TXT, JSON, or SRT subtitle files  
+⚡ **Fast Processing** - Optimized backend for instant results  
 
-### Extract a Single Video
-1. Navigate to the Extractor page
-2. Select "Single Video" mode
-3. Paste the YouTube URL
-4. Choose format and options
-5. Click "Extract Transcripts"
+---
 
-### Batch Processing
-1. Select "Playlist" or "Channel" mode
-2. Paste the playlist/channel URL
-3. Select your output preferences
-4. Process multiple videos at once
+## Architecture
 
-### Output Formats
-- **TXT** - Plain text with optional timestamps
-- **JSON** - Structured data with metadata
-- **SRT** - Subtitle format for video editors
+```
+Frontend (Next.js) → API Proxy → Python Backend (FastAPI) → YouTube
+```
+
+Clean separation: React UI handles the beautiful frontend, Python handles the heavy lifting of transcript extraction.
 
 ---
 
 ## Project Structure
 
 ```
-src/
-├── app/                 # Next.js App Router pages
-│   ├── (auth)/         # Authentication pages (sign-up, sign-in)
-│   ├── api/            # API routes (transcript extraction)
-│   ├── dashboard/      # Protected user dashboard
-│   └── extractor/      # Main transcript extractor
-├── components/         # Reusable React components
-│   ├── extractor/      # Feature-specific components
-│   └── ui/             # shadcn/ui components
-├── constants/          # App-wide configuration
-├── hooks/              # Custom React hooks
-├── lib/                # Utility functions
-├── types/              # TypeScript definitions
-└── utils/              # Helper functions
-```
-
-
-
-## API Endpoints
-
-**POST /api/extract**
-Extract transcript from a video.
-
-Request:
-```json
-{
-  "videoId": "dQw4w9WgXcQ",
-  "options": {
-    "format": "txt",
-    "includeTimestamps": true,
-    "language": "en"
-  }
-}
-```
-
-Response:
-```json
-{
-  "success": true,
-  "transcript": "...",
-  "wordCount": 1234
-}
+topperinator/
+├── src/                 # React/Next.js code
+│   ├── app/            # Pages and API routes
+│   ├── components/      # Reusable UI components
+│   ├── lib/            # Utilities and helpers
+│   └── ...
+├── backend/            # Python FastAPI server
+│   ├── main.py         # FastAPI app with transcript extraction
+│   └── requirements.txt # Dependencies
+└── ...
 ```
 
 ---
 
-## Development Notes
+## Built For Learning
 
-- Middleware handles authentication for protected routes
-- Supabase RLS policies secure the database
-- Client-side validation before API calls
-- Error handling with user-friendly messages
+This project demonstrates:
+- Full-stack web development with modern frameworks
+- Frontend-backend integration and API design
+- Python async programming with FastAPI
+- User authentication and secure databases
+- Beautiful UI/UX with Tailwind and component libraries
+- Production-ready code organization
 
----
-
-## Browser Support
-
-- Chrome/Edge (latest)
-- Firefox (latest)
-- Safari (latest)
-- Mobile browsers (iOS Safari, Chrome Mobile)
+Perfect for portfolio projects, learning full-stack development, or understanding how to integrate multiple technologies.
 
 ---
 
-## License
+## Community
 
-MIT License - see LICENSE file for details
-
----
-
-## Support
-
-For issues and questions:
-- Open a GitHub issue
-- Check the documentation
-- Review existing issues for solutions
+Have ideas for Topper-inator? Love transcripts? Found a bug? Contributions welcome!
 
 ---
 
-Built with care for transcript extraction at scale.
+*Built by students, for students.* 🚀
