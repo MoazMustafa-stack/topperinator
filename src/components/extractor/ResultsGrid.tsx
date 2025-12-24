@@ -37,7 +37,7 @@ export default function ResultsGrid({ results, options }: ResultsGridProps) {
             className="border-[3px] border-white bg-[#1a1a1a] overflow-hidden scale-in"
           >
             <div className="relative h-[180px] bg-black border-b-[3px] border-white">
-              <Image
+              <Image 
                 src={result.thumbnail}
                 alt={result.title}
                 fill
