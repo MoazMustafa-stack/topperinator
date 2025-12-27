@@ -45,6 +45,32 @@ export default function InputModule({
     return null;
   };
 
+  const extractPlaylistId = (url: string): string | null => {
+    const patterns = [
+      /[?&]list=([^&\n?#]+)/,
+      /youtube\.com\/playlist\?list=([^&\n?#]+)/,
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+
+  const extractChannelId = (url: string): string | null => {
+    const patterns = [
+      /youtube\.com\/@([^/\n?#]+)/,
+      /youtube\.com\/channel\/([^/\n?#]+)/,
+      /youtube\.com\/c\/([^/\n?#]+)/,
+      /youtube\.com\/user\/([^/\n?#]+)/,
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+
   const fetchVideoMetadata = async (videoId: string): Promise<VideoMetadata | null> => {
     try {
       const response = await fetch(`${API_ENDPOINTS.youtube.oembed}?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
@@ -70,25 +96,55 @@ export default function InputModule({
 
     setIsValidating(true);
     const timer = setTimeout(async () => {
-      const videoId = extractVideoId(url);
-      if (videoId) {
-        const realMetadata = await fetchVideoMetadata(videoId);
-        if (realMetadata) {
-          setIsValid(true);
-          setMetadata(realMetadata);
+      if (inputMode === 'single') {
+        const videoId = extractVideoId(url);
+        if (videoId) {
+          const realMetadata = await fetchVideoMetadata(videoId);
+          if (realMetadata) {
+            setIsValid(true);
+            setMetadata(realMetadata);
+          } else {
+            setIsValid(false);
+            setMetadata(null);
+          }
         } else {
           setIsValid(false);
           setMetadata(null);
         }
-      } else {
-        setIsValid(false);
-        setMetadata(null);
+      } else if (inputMode === 'playlist') {
+        const playlistId = extractPlaylistId(url);
+        if (playlistId) {
+          setIsValid(true);
+          setMetadata({
+            id: playlistId,
+            title: 'Playlist',
+            thumbnail: '',
+            playlistName: 'Playlist'
+          });
+        } else {
+          setIsValid(false);
+          setMetadata(null);
+        }
+      } else if (inputMode === 'channel') {
+        const channelId = extractChannelId(url);
+        if (channelId) {
+          setIsValid(true);
+          setMetadata({
+            id: channelId,
+            title: 'Channel',
+            thumbnail: '',
+            channelName: channelId
+          });
+        } else {
+          setIsValid(false);
+          setMetadata(null);
+        }
       }
       setIsValidating(false);
     }, VALIDATION.debounceDelay);
 
     return () => clearTimeout(timer);
-  }, [url, setMetadata]);
+  }, [url, inputMode, setMetadata]);
 
   const handleClear = () => {
     setUrl("");

@@ -28,7 +28,6 @@ YouTube transcripts are goldmines for learning, but accessing them is clunky. To
 **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui  
 **Backend**: FastAPI (Python), yt-dlp  
 **Database**: Supabase (Auth + PostgreSQL)  
-**Styling**: Custom green theme (#c4ff0e) with monospace typography
 
 ---
 
@@ -76,8 +75,6 @@ This project demonstrates:
 - Frontend-backend integration and API design
 - Python async programming with FastAPI
 - User authentication and secure databases
-- Beautiful UI/UX with Tailwind and component libraries
-- Production-ready code organization
 
 Perfect for portfolio projects, learning full-stack development, or understanding how to integrate multiple technologies.
 
@@ -89,4 +86,4 @@ Have ideas for Topper-inator? Love transcripts? Found a bug? Contributions welco
 
 ---
 
-*Built by students, for students.* 🚀
+*Built by a student, for students.* 🚀

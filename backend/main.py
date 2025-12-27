@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yt_dlp
 import json
-from typing import Optional
+from typing import Optional, List
 
 app = FastAPI(title="Topperinator API", version="1.0.0")
 
@@ -23,6 +23,26 @@ class ExtractResponse(BaseModel):
     success: bool
     transcript: str = ""
     wordCount: int = 0
+    error: Optional[str] = None
+
+class VideoInfo(BaseModel):
+    id: str
+    title: str
+    thumbnail: str
+    channelName: Optional[str] = None
+
+class PlaylistRequest(BaseModel):
+    playlistUrl: str
+
+class ChannelRequest(BaseModel):
+    channelUrl: str
+    maxVideos: Optional[int] = 50  # Limit to prevent abuse
+
+class VideoListResponse(BaseModel):
+    success: bool
+    videos: List[VideoInfo] = []
+    playlistName: Optional[str] = None
+    channelName: Optional[str] = None
     error: Optional[str] = None
 
 def extract_subtitles(video_id: str, format: str = "txt", include_timestamps: bool = False) -> dict:
@@ -146,6 +166,12 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
 
+@app.get("/favicon.ico")
+async def favicon():
+    """Favicon endpoint - returns 204 to silence browser requests"""
+    from fastapi.responses import Response
+    return Response(status_code=204)
+
 @app.post("/api/extract", response_model=ExtractResponse)
 async def extract_transcript(request: ExtractRequest):
     """Extract YouTube transcript"""
@@ -172,6 +198,119 @@ async def extract_transcript(request: ExtractRequest):
         wordCount=result['wordCount']
     )
 
+def extract_playlist_videos(playlist_url: str) -> dict:
+    """Extract video information from a YouTube playlist"""
+    try:
+        ydl_opts = {
+            'quiet': True,
+            'no_warnings': True,
+            'extract_flat': False,  # Get full video info
+            'skip_download': True,
+        }
+        
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(playlist_url, download=False)
+            
+            videos = []
+            playlist_name = info.get('title', 'Playlist')
+            
+            if 'entries' in info:
+                for entry in info['entries']:
+                    if entry and entry.get('id'):
+                        videos.append({
+                            'id': entry['id'],
+                            'title': entry.get('title', 'Unknown'),
+                            'thumbnail': entry.get('thumbnail', ''),
+                            'channelName': entry.get('channel', '')
+                        })
+            
+            return {
+                "success": True,
+                "videos": videos,
+                "playlistName": playlist_name
+            }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": f"Error extracting playlist: {str(e)}"
+        }
+
+def extract_channel_videos(channel_url: str, max_videos: int = 50) -> dict:
+    """Extract video information from a YouTube channel"""
+    try:
+        ydl_opts = {
+            'quiet': True,
+            'no_warnings': True,
+            'extract_flat': False,
+            'skip_download': True,
+            'playlistend': max_videos,  # Limit number of videos
+        }
+        
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(channel_url, download=False)
+            
+            videos = []
+            channel_name = info.get('channel', 'Channel')
+            
+            if 'entries' in info:
+                for entry in info['entries']:
+                    if entry and entry.get('id'):
+                        videos.append({
+                            'id': entry['id'],
+                            'title': entry.get('title', 'Unknown'),
+                            'thumbnail': entry.get('thumbnail', ''),
+                            'channelName': entry.get('channel', channel_name)
+                        })
+            
+            return {
+                "success": True,
+                "videos": videos,
+                "channelName": channel_name
+            }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": f"Error extracting channel: {str(e)}"
+        }
+
+@app.post("/api/playlist/videos", response_model=VideoListResponse)
+async def get_playlist_videos(request: PlaylistRequest):
+    """Get list of videos from a YouTube playlist"""
+    if not request.playlistUrl:
+        raise HTTPException(status_code=400, detail="playlistUrl is required")
+    
+    result = extract_playlist_videos(request.playlistUrl)
+    
+    if not result.get('success'):
+        raise HTTPException(status_code=400, detail=result.get('error', 'Unknown error'))
+    
+    return VideoListResponse(
+        success=True,
+        videos=result['videos'],
+        playlistName=result.get('playlistName')
+    )
+
+@app.post("/api/channel/videos", response_model=VideoListResponse)
+async def get_channel_videos(request: ChannelRequest):
+    """Get list of videos from a YouTube channel"""
+    if not request.channelUrl:
+        raise HTTPException(status_code=400, detail="channelUrl is required")
+    
+    result = extract_channel_videos(request.channelUrl, request.maxVideos or 50)
+    
+    if not result.get('success'):
+        raise HTTPException(status_code=400, detail=result.get('error', 'Unknown error'))
+    
+    return VideoListResponse(
+        success=True,
+        videos=result['videos'],
+        channelName=result.get('channelName')
+    )
+
 @app.get("/")
 async def root():
     """Root endpoint"""
@@ -180,7 +319,9 @@ async def root():
         "version": "1.0.0",
         "endpoints": {
             "health": "/health",
-            "extract": "/api/extract"
+            "extract": "/api/extract",
+            "playlist": "/api/playlist/videos",
+            "channel": "/api/channel/videos"
         }
     }
 
