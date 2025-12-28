@@ -62,7 +62,7 @@ export default function ExtractorPage() {
   const [progress, setProgress] = useState<ProgressItem[]>([]);
   const [results, setResults] = useState<TranscriptResult[]>([]);
 
-  const extractSingleVideo = async (videoId: string, videoMetadata?: VideoMetadata) => {
+  const extractSingleVideo = async (videoId: string, videoMetadata?: VideoMetadata): Promise<TranscriptResult> => {
     const response = await fetch('/api/extract', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -81,7 +81,9 @@ export default function ExtractorPage() {
         thumbnail: videoMetadata?.thumbnail || ASSETS.defaultThumbnail,
         transcript: data.transcript,
         wordCount: data.wordCount,
-        status: 'success' as const
+        status: 'success' as const,
+        channelName: videoMetadata?.channelName,
+        playlistName: videoMetadata?.playlistName
       };
     } else {
       return {
@@ -91,7 +93,9 @@ export default function ExtractorPage() {
         transcript: '',
         wordCount: 0,
         status: 'failed' as const,
-        error: data.error
+        error: data.error,
+        channelName: videoMetadata?.channelName,
+        playlistName: videoMetadata?.playlistName
       };
     }
   };

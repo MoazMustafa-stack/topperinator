@@ -257,6 +257,13 @@ def extract_playlist_videos(playlist_url: str) -> dict:
 def extract_channel_videos(channel_url: str, max_videos: int = 50) -> dict:
     """Extract video information from a YouTube channel"""
     try:
+        # For channels, we need to append /videos to get the videos tab
+        if '/videos' not in channel_url:
+            if channel_url.endswith('/'):
+                channel_url = f"{channel_url}videos"
+            else:
+                channel_url = f"{channel_url}/videos"
+        
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
@@ -266,7 +273,7 @@ def extract_channel_videos(channel_url: str, max_videos: int = 50) -> dict:
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            print(f"Extracting channel info from: {channel_url}")
+            print(f"Extracting channel videos from: {channel_url}")
             info = ydl.extract_info(channel_url, download=False)
             
             videos = []
@@ -281,14 +288,29 @@ def extract_channel_videos(channel_url: str, max_videos: int = 50) -> dict:
                         print(f"Skipping None entry at index {idx}")
                         continue
                     
-                    video_id = entry.get('id')
+                    video_id = entry.get('id') or entry.get('url')
                     if not video_id:
                         print(f"No ID found for entry at index {idx}: {entry}")
                         continue
                     
+                    # Extract video ID from URL if needed
+                    if 'youtube.com' in str(video_id) or 'youtu.be' in str(video_id):
+                        import re
+                        match = re.search(r'(?:v=|/)([a-zA-Z0-9_-]{11})', video_id)
+                        if match:
+                            video_id = match.group(1)
+                        else:
+                            print(f"Could not extract video ID from URL: {video_id}")
+                            continue
+                    
                     # Ensure we're not using channel IDs as video IDs
                     if video_id.startswith('UC') and len(video_id) > 15:
                         print(f"Skipping channel ID mistaken as video ID: {video_id}")
+                        continue
+                    
+                    # Validate video ID format (11 characters, alphanumeric + _ -)
+                    if len(video_id) != 11:
+                        print(f"Invalid video ID length ({len(video_id)}): {video_id}")
                         continue
                     
                     print(f"Adding video {idx + 1}: {video_id} - {entry.get('title', 'Unknown')}")

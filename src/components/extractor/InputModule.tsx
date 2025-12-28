@@ -149,7 +149,7 @@ export default function InputModule({
           });
         } else {
           setIsValid(false);
-    b      setMetadata(null);
+          setMetadata(null);
         }
       }
       setIsValidating(false);
