@@ -1,73 +1,75 @@
 import Link from 'next/link';
-import { Twitter, Linkedin, Github } from 'lucide-react';
+import { Linkedin, Github } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-100">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="bg-[#1a1a1a] border-t-[3px] border-white/20">
+      <div className="max-w-[1200px] mx-auto px-6 py-12">
+        
+        {/* NAVIGATION SECTIONS - Uncomment to enable 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          {/* Product Column */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Product</h3>
+            <h3 className="font-mono font-bold text-[#c4ff0e] mb-4 uppercase tracking-wide text-sm">Product</h3>
             <ul className="space-y-2">
-              <li><Link href="#features" className="text-gray-600 hover:text-blue-600">Features</Link></li>
-              <li><Link href="#pricing" className="text-gray-600 hover:text-blue-600">Pricing</Link></li>
-              <li><Link href="/dashboard" className="text-gray-600 hover:text-blue-600">Dashboard</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">API</Link></li>
+              <li><Link href="#features" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Features</Link></li>
+              <li><Link href="#pricing" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Pricing</Link></li>
+              <li><Link href="/dashboard" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Dashboard</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">API</Link></li>
             </ul>
           </div>
 
-          {/* Company Column */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Company</h3>
+            <h3 className="font-mono font-bold text-[#c4ff0e] mb-4 uppercase tracking-wide text-sm">Company</h3>
             <ul className="space-y-2">
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">About</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">Blog</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">Careers</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">Press</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">About</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Blog</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Careers</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Press</Link></li>
             </ul>
           </div>
 
-          {/* Resources Column */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Resources</h3>
+            <h3 className="font-mono font-bold text-[#c4ff0e] mb-4 uppercase tracking-wide text-sm">Resources</h3>
             <ul className="space-y-2">
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">Documentation</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">Help Center</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">Community</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">Status</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Documentation</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Help Center</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Community</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Status</Link></li>
             </ul>
           </div>
 
-          {/* Legal Column */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Legal</h3>
+            <h3 className="font-mono font-bold text-[#c4ff0e] mb-4 uppercase tracking-wide text-sm">Legal</h3>
             <ul className="space-y-2">
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">Privacy</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">Terms</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">Security</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-600">Cookies</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Privacy</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Terms</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Security</Link></li>
+              <li><Link href="#" className="text-white/70 hover:text-[#c4ff0e] font-mono text-sm transition-colors">Cookies</Link></li>
             </ul>
           </div>
         </div>
+        */}
 
-        <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-gray-200">
-          <div className="text-gray-600 mb-4 md:mb-0">
-            © {currentYear} Your Company. All rights reserved.
+        {/* COPYRIGHT & SOCIAL LINKS - Always visible */}
+        <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t-[3px] border-white/20">
+          <div className="text-white/50 mb-4 md:mb-0 font-mono text-xs uppercase tracking-wide">
+            © {currentYear} Topper-inator. Made by Moaz Mustafa.
           </div>
-          
+          <div className="flex space-x-3">
+          <p className="text-white/50 font-mono text-xs uppercase tracking-wide">
+            Technical Brutalism • Function Over Form • Built for Power Users
+          </p>
+          </div>
+
           <div className="flex space-x-6">
-            <a href="#" className="text-gray-400 hover:text-gray-500">
-              <span className="sr-only">Twitter</span>
-              <Twitter className="h-6 w-6" />
-            </a>
-            <a href="#" className="text-gray-400 hover:text-gray-500">
+            
+            <a href="https://www.linkedin.com/in/moazmustafa/" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-[#c4ff0e] transition-colors">
               <span className="sr-only">LinkedIn</span>
               <Linkedin className="h-6 w-6" />
             </a>
-            <a href="#" className="text-gray-400 hover:text-gray-500">
+            <a href="https://github.com/MoazMustafa-stack" target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-[#c4ff0e] transition-colors">
               <span className="sr-only">GitHub</span>
               <Github className="h-6 w-6" />
             </a>

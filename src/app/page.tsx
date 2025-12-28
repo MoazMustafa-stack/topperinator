@@ -1,11 +1,17 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
+
+const SHOW_NAVBAR = process.env.NEXT_PUBLIC_SHOW_NAVBAR !== "false";
+const SHOW_HERO = process.env.NEXT_PUBLIC_SHOW_HERO !== "false";
+const SHOW_FEATURES = process.env.NEXT_PUBLIC_SHOW_FEATURES !== "false";
+const SHOW_FOOTER = process.env.NEXT_PUBLIC_SHOW_FOOTER !== "false";
 
 export default async function Home() {
   return (
     <div className="min-h-screen bg-[#1a1a1a] scanline-bg">
-      <Navbar />
+      {SHOW_NAVBAR && <Navbar />}
       <div className="max-w-[1200px] mx-auto px-6 py-12">
         <header className="text-center py-20">
           <h1
@@ -54,13 +60,8 @@ export default async function Home() {
             </div>
           ))}
         </div>
-
-        <footer className="border-t-[3px] border-white/20 pt-8 pb-12 text-center">
-          <p className="text-white/50 font-mono text-xs uppercase tracking-wide">
-            Technical Brutalism • Function Over Form • Built for Power Users
-          </p>
-        </footer>
       </div>
+      {SHOW_FOOTER && <Footer />}
     </div>
   );
 }
