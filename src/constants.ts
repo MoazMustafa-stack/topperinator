@@ -36,3 +36,8 @@ export const YOUTUBE_PATTERNS = {
 export const ASSETS = {
   defaultThumbnail: '/assets/images/default-thumbnail.svg',
 } as const;
+
+export const UI_CONFIG = {
+  borderWidth: 3, // pixels
+  animationDuration: 200, // ms
+} as const;
