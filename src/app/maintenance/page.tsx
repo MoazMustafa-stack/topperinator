@@ -28,9 +28,6 @@ export default function MaintenancePage() {
           <p className="text-xs text-gray-500 uppercase tracking-[0.2em]">
             Expected downtime: short — we&apos;ll be back soon.
           </p>
-          <p className="text-sm text-gray-400">
-            Check live status: <a className="text-lime-300 underline" href="https://status.example.com" target="_blank" rel="noreferrer">status.example.com</a>
-          </p>
         </div>
       </div>
     </main>
