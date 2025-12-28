@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 import time
 import json
 from typing import Optional, List
+import os
 
 # Default thumbnail for videos without thumbnails
 DEFAULT_THUMBNAIL = "/assets/images/default-thumbnail.svg"
