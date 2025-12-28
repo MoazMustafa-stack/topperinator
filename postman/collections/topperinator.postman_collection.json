@@ -104,6 +104,81 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Backend API",
+      "item": [
+        {
+          "name": "Backend Extract Transcript",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{pythonApiUrl}}/api/extract", "host": ["{{pythonApiUrl}}"], "path": ["api","extract"] },
+            "body": { "mode": "raw", "raw": "{\n  \"videoId\": \"{{videoId}}\",\n  \"options\": { \"format\": \"txt\", \"includeTimestamps\": false }\n}" }
+          },
+          "event": [
+            { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+              "const videoId = pm.environment.get('videoId');",
+              "if (!pm.request.body || !pm.request.body.raw) { pm.request.body.update(JSON.stringify({ videoId: videoId || 'dQw4w9WgXcQ', options: { format: 'txt', includeTimestamps: false } })); }"
+            ] }},
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status code 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Success true and transcript present', function () { const json = pm.response.json(); pm.expect(json).to.have.property('success', true); pm.expect(json.transcript).to.be.a('string').that.is.not.empty; });",
+              "pm.test('Word count is positive', function () { const json = pm.response.json(); pm.expect(json.wordCount).to.be.a('number').that.is.above(0); });"
+            ] }}
+          ]
+        },
+        {
+          "name": "Backend Channel Videos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{pythonApiUrl}}/api/channel/videos", "host": ["{{pythonApiUrl}}"], "path": ["api","channel","videos"] },
+            "body": { "mode": "raw", "raw": "{\n  \"channelUrl\": \"{{channelUrl}}\",\n  \"maxVideos\": 10\n}" }
+          },
+          "event": [
+            { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+              "const channelUrl = pm.environment.get('channelUrl');",
+              "if (!pm.request.body || !pm.request.body.raw) { pm.request.body.update(JSON.stringify({ channelUrl: channelUrl || 'https://www.youtube.com/@RickAstley', maxVideos: 10 })); }"
+            ] }},
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status code 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Success true and videos array', function () { const json = pm.response.json(); pm.expect(json).to.have.property('success', true); pm.expect(json.videos).to.be.an('array'); });",
+              "pm.test('Videos have id/title/thumbnail', function () { const json = pm.response.json(); if (Array.isArray(json.videos)) { json.videos.forEach(v => { pm.expect(v).to.have.property('id'); pm.expect(v).to.have.property('title'); pm.expect(v).to.have.property('thumbnail'); }); } });"
+            ] }}
+          ]
+        },
+        {
+          "name": "Backend Playlist Videos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{pythonApiUrl}}/api/playlist/videos", "host": ["{{pythonApiUrl}}"], "path": ["api","playlist","videos"] },
+            "body": { "mode": "raw", "raw": "{\n  \"playlistUrl\": \"{{playlistUrl}}\"\n}" }
+          },
+          "event": [
+            { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+              "const playlistUrl = pm.environment.get('playlistUrl');",
+              "if (!pm.request.body || !pm.request.body.raw) { pm.request.body.update(JSON.stringify({ playlistUrl: playlistUrl || 'https://www.youtube.com/playlist?list=PL1234567890' })); }"
+            ] }},
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status code 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Success true and videos array', function () { const json = pm.response.json(); pm.expect(json).to.have.property('success', true); pm.expect(json.videos).to.be.an('array'); });",
+              "pm.test('Optional playlistName is string', function () { const json = pm.response.json(); if (json.playlistName !== undefined) { pm.expect(json.playlistName).to.be.a('string'); } });"
+            ] }}
+          ]
+        },
+        {
+          "name": "Backend Root",
+          "request": { "method": "GET", "url": { "raw": "{{pythonApiUrl}}/", "host": ["{{pythonApiUrl}}"], "path": [] } },
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Has endpoints map', function () { const json = pm.response.json(); pm.expect(json).to.have.property('endpoints'); });"
+            ] }}
+          ]
+        }
+      ]
     }
   ]
 }
