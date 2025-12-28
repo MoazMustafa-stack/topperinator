@@ -66,13 +66,6 @@ Contributions welcome! Please feel free to submit issues or pull requests.
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
-
-## Maintenance mode
-
-- Toggle via env: set `NEXT_PUBLIC_MAINTENANCE_MODE=true` to route auth pages (sign-in, sign-up, forgot/reset password) to `/maintenance`.
-- Admin/test bypass: set cookie `maintenance_bypass=1` to skip maintenance for yourself.
-- Page location: [src/app/maintenance/page.tsx](src/app/maintenance/page.tsx)
 
 ---
 

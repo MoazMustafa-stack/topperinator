@@ -14,11 +14,11 @@ DEFAULT_THUMBNAIL = "/assets/images/default-thumbnail.svg"
 
 app = FastAPI(title="Topperinator API", version="1.0.0")
 
-APP_ORIGIN = os.getenv("APP_ORIGIN", "http://localhost:3000")
+allowed_origin = os.getenv("APP_ORIGIN", "http://localhost:3000").split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[APP_ORIGIN],
+    allow_origins=allowed_origin,
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type", "X-APP-KEY", "Origin"],

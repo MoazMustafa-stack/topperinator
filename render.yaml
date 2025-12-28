@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: topperinator-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && gunicorn main:app
+    envVars:
+      - key: APP_ORIGIN
+        value: https://your-app.vercel.app
+      - key: PYTHON_VERSION
+        value: 3.13.0
