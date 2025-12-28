@@ -1,0 +1,109 @@
+{
+  "info": {
+    "name": "Topperinator API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": { "type": "text/javascript", "exec": [
+        "pm.environment.set('currentTimestamp', Date.now());",
+        "const apiToken = pm.environment.get('apiToken');",
+        "if (apiToken) { pm.request.headers.upsert({ key: 'X-APP-KEY', value: apiToken }); }",
+        "pm.request.headers.upsert({ key: 'Content-Type', value: 'application/json' });",
+        "const origin = pm.environment.get('appOrigin');",
+        "if (origin) { pm.request.headers.upsert({ key: 'Origin', value: origin }); }"
+      ] }
+    },
+    {
+      "listen": "test",
+      "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status code is 2xx', function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+        "pm.test('Response time < 2000ms', function () { pm.expect(pm.response.responseTime).to.be.below(2000); });",
+        "pm.test('Content-Type is JSON when body exists', function () { const len = pm.response.headers.get('Content-Length'); const ct = pm.response.headers.get('Content-Type') || ''; if (len && Number(len) > 0) { pm.expect(ct.toLowerCase()).to.include('application/json'); } });"
+      ] }
+    }
+  ],
+  "item": [
+    {
+      "name": "Frontend API",
+      "item": [
+        {
+          "name": "Extract Transcript",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/extract", "host": ["{{baseUrl}}"], "path": ["api","extract"] },
+            "body": { "mode": "raw", "raw": "{\n  \"videoId\": \"{{videoId}}\",\n  \"options\": { \"format\": \"txt\", \"includeTimestamps\": false }\n}" }
+          },
+          "event": [
+            { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+              "const videoId = pm.environment.get('videoId');",
+              "if (!pm.request.body || !pm.request.body.raw) { pm.request.body.update(JSON.stringify({ videoId: videoId || 'dQw4w9WgXcQ', options: { format: 'txt', includeTimestamps: false } })); }"
+            ] }},
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status code 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Success true and transcript present', function () { const json = pm.response.json(); pm.expect(json).to.have.property('success', true); pm.expect(json.transcript).to.be.a('string').that.is.not.empty; });",
+              "pm.test('Word count is positive', function () { const json = pm.response.json(); pm.expect(json.wordCount).to.be.a('number').that.is.above(0); });"
+            ] }}
+          ]
+        },
+        {
+          "name": "Channel Videos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/channel/videos", "host": ["{{baseUrl}}"], "path": ["api","channel","videos"] },
+            "body": { "mode": "raw", "raw": "{\n  \"channelUrl\": \"{{channelUrl}}\",\n  \"maxVideos\": 10\n}" }
+          },
+          "event": [
+            { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+              "const channelUrl = pm.environment.get('channelUrl');",
+              "if (!pm.request.body || !pm.request.body.raw) { pm.request.body.update(JSON.stringify({ channelUrl: channelUrl || 'https://www.youtube.com/@RickAstley', maxVideos: 10 })); }"
+            ] }},
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status code 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Success true and videos array', function () { const json = pm.response.json(); pm.expect(json).to.have.property('success', true); pm.expect(json.videos).to.be.an('array'); });",
+              "pm.test('Videos have id/title/thumbnail', function () { const json = pm.response.json(); if (Array.isArray(json.videos)) { json.videos.forEach(v => { pm.expect(v).to.have.property('id'); pm.expect(v).to.have.property('title'); pm.expect(v).to.have.property('thumbnail'); }); } });"
+            ] }}
+          ]
+        },
+        {
+          "name": "Playlist Videos",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/playlist/videos", "host": ["{{baseUrl}}"], "path": ["api","playlist","videos"] },
+            "body": { "mode": "raw", "raw": "{\n  \"playlistUrl\": \"{{playlistUrl}}\"\n}" }
+          },
+          "event": [
+            { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+              "const playlistUrl = pm.environment.get('playlistUrl');",
+              "if (!pm.request.body || !pm.request.body.raw) { pm.request.body.update(JSON.stringify({ playlistUrl: playlistUrl || 'https://www.youtube.com/playlist?list=PL1234567890' })); }"
+            ] }},
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status code 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Success true and videos array', function () { const json = pm.response.json(); pm.expect(json).to.have.property('success', true); pm.expect(json.videos).to.be.an('array'); });",
+              "pm.test('Optional playlistName is string', function () { const json = pm.response.json(); if (json.playlistName !== undefined) { pm.expect(json.playlistName).to.be.a('string'); } });"
+            ] }}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Backend Health",
+      "item": [
+        {
+          "name": "Health",
+          "request": { "method": "GET", "url": { "raw": "{{pythonApiUrl}}/health", "host": ["{{pythonApiUrl}}"], "path": ["health"] } },
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Healthy', function () { const json = pm.response.json(); pm.expect(json.status).to.equal('healthy'); });"
+            ] }}
+          ]
+        }
+      ]
+    }
+  ]
+}
