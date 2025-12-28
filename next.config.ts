@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
-    const connectSrc = ["'self'", SUPABASE_URL, PYTHON_API_URL].filter(Boolean).join(" ");
+    const connectSrc = ["'self'", SUPABASE_URL, PYTHON_API_URL, "https://www.youtube.com"].filter(Boolean).join(" ");
     return [
       {
         source: "/(.*)",
@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: i.ytimg.com ytimg.com",
               `connect-src ${connectSrc}`,
