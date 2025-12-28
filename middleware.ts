@@ -4,6 +4,7 @@ import { updateSession } from "./supabase/middleware";
 
 const MAINTENANCE_ENABLED = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === "true";
 const MAINTENANCE_BYPASS_COOKIE = "maintenance_bypass";
+const MAINTENANCE_BYPASS_SECRET = process.env.MAINTENANCE_BYPASS_SECRET || "";
 const MAINTENANCE_PATHS = [
   "/sign-in",
   "/sign-up",
@@ -15,7 +16,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   // Flip NEXT_PUBLIC_MAINTENANCE_MODE=true to route auth pages to /maintenance; set maintenance_bypass=1 cookie to skip.
   const maintenanceBypass =
-    request.cookies.get(MAINTENANCE_BYPASS_COOKIE)?.value === "1";
+    !!MAINTENANCE_BYPASS_SECRET && request.cookies.get(MAINTENANCE_BYPASS_COOKIE)?.value === MAINTENANCE_BYPASS_SECRET;
   const maintenanceActive = MAINTENANCE_ENABLED && !maintenanceBypass;
 
   if (

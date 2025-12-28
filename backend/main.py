@@ -1,7 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yt_dlp
+import re
+from urllib.parse import urlparse
+import time
 import json
 from typing import Optional, List
 
@@ -10,12 +13,14 @@ DEFAULT_THUMBNAIL = "/assets/images/default-thumbnail.svg"
 
 app = FastAPI(title="Topperinator API", version="1.0.0")
 
+APP_ORIGIN = os.getenv("APP_ORIGIN", "http://localhost:3000")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[APP_ORIGIN],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "X-APP-KEY", "Origin"],
 )
 
 class ExtractRequest(BaseModel):
@@ -48,6 +53,23 @@ class VideoListResponse(BaseModel):
     channelName: Optional[str] = None
     error: Optional[str] = None
 
+# Rate limiting: 16 requests per 14 days per IP
+RATE_LIMIT_MAX = 16
+RATE_LIMIT_WINDOW_SECONDS = 14 * 24 * 60 * 60
+_rate_limit_store: dict[str, list[float]] = {}
+
+
+def enforce_rate_limit(ip: str):
+    now = time.time()
+    window_start = now - RATE_LIMIT_WINDOW_SECONDS
+    timestamps = _rate_limit_store.get(ip, [])
+    # Keep only recent timestamps inside the window
+    fresh = [t for t in timestamps if t >= window_start]
+    if len(fresh) >= RATE_LIMIT_MAX:
+        raise HTTPException(status_code=429, detail="Rate limit exceeded: 16 requests per 14 days per IP")
+    fresh.append(now)
+    _rate_limit_store[ip] = fresh
+
 def extract_subtitles(video_id: str, format: str = "txt", include_timestamps: bool = False) -> dict:
     """Extract subtitles using yt-dlp"""
     import os
@@ -64,12 +86,13 @@ def extract_subtitles(video_id: str, format: str = "txt", include_timestamps: bo
                 'writeautomaticsub': True,
                 'skip_download': True,
                 'outtmpl': os.path.join(tmpdir, '%(id)s'),
-                'subtitle format': 'srt',
+                'subtitlesformat': 'srt',
             }
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 print(f"Fetching info for {video_id}...")
-                info = ydl.extract_info(url, download=True)  # Need download=True to get subtitles
+                # Trigger download flow only for subtitles; media download is skipped by 'skip_download'
+                info = ydl.extract_info(url, download=True)
                 
                 # List files in temp directory
                 files = os.listdir(tmpdir)
@@ -176,8 +199,10 @@ async def favicon():
     return Response(status_code=204)
 
 @app.post("/api/extract", response_model=ExtractResponse)
-async def extract_transcript(request: ExtractRequest):
+async def extract_transcript(req: Request, request: ExtractRequest):
     """Extract YouTube transcript"""
+
+    enforce_rate_limit(req.client.host if req.client else "unknown")
     
     if not request.videoId:
         raise HTTPException(status_code=400, detail="videoId is required")
@@ -191,10 +216,10 @@ async def extract_transcript(request: ExtractRequest):
     print(f"Format: {format}, Include timestamps: {include_timestamps}")
     
     result = extract_subtitles(request.videoId, format, include_timestamps)
-    
+
     if not result.get('success'):
-        raise HTTPException(status_code=400, detail=result.get('error', 'Unknown error'))
-    
+        raise HTTPException(status_code=400, detail="Failed to extract transcript")
+
     return ExtractResponse(
         success=True,
         transcript=result['transcript'],
@@ -336,16 +361,21 @@ def extract_channel_videos(channel_url: str, max_videos: int = 50) -> dict:
         }
 
 @app.post("/api/playlist/videos", response_model=VideoListResponse)
-async def get_playlist_videos(request: PlaylistRequest):
+async def get_playlist_videos(req: Request, request: PlaylistRequest):
     """Get list of videos from a YouTube playlist"""
+    enforce_rate_limit(req.client.host if req.client else "unknown")
     if not request.playlistUrl:
         raise HTTPException(status_code=400, detail="playlistUrl is required")
+
+    # Allow only YouTube URLs to prevent SSRF
+    if not is_allowed_youtube_url(request.playlistUrl):
+        raise HTTPException(status_code=400, detail="Invalid playlist URL")
     
     result = extract_playlist_videos(request.playlistUrl)
-    
+
     if not result.get('success'):
-        raise HTTPException(status_code=400, detail=result.get('error', 'Unknown error'))
-    
+        raise HTTPException(status_code=400, detail="Failed to fetch playlist videos")
+
     return VideoListResponse(
         success=True,
         videos=result['videos'],
@@ -353,16 +383,28 @@ async def get_playlist_videos(request: PlaylistRequest):
     )
 
 @app.post("/api/channel/videos", response_model=VideoListResponse)
-async def get_channel_videos(request: ChannelRequest):
+async def get_channel_videos(req: Request, request: ChannelRequest):
     """Get list of videos from a YouTube channel"""
+    enforce_rate_limit(req.client.host if req.client else "unknown")
     if not request.channelUrl:
         raise HTTPException(status_code=400, detail="channelUrl is required")
+
+    # Allow only YouTube URLs to prevent SSRF
+    if not is_allowed_youtube_url(request.channelUrl):
+        raise HTTPException(status_code=400, detail="Invalid channel URL")
+
+    # Clamp maxVideos to a safe range
+    max_videos = request.maxVideos or 50
+    if max_videos < 1:
+        max_videos = 1
+    if max_videos > 50:
+        max_videos = 50
     
-    result = extract_channel_videos(request.channelUrl, request.maxVideos or 50)
-    
+    result = extract_channel_videos(request.channelUrl, max_videos)
+
     if not result.get('success'):
-        raise HTTPException(status_code=400, detail=result.get('error', 'Unknown error'))
-    
+        raise HTTPException(status_code=400, detail="Failed to fetch channel videos")
+
     return VideoListResponse(
         success=True,
         videos=result['videos'],
@@ -386,3 +428,15 @@ async def root():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+# --- Helpers ---
+def is_allowed_youtube_url(url: str) -> bool:
+    """Allow only YouTube and youtu.be URLs with http/https schemes."""
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            return False
+        host = (parsed.hostname or "").lower()
+        return host.endswith("youtube.com") or host == "youtu.be"
+    except Exception:
+        return False

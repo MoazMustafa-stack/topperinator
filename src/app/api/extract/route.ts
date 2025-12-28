@@ -1,15 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const PYTHON_API_URL = process.env.PYTHON_API_URL || "http://localhost:8000";
+const APP_ORIGIN = process.env.APP_ORIGIN;
+const API_TOKEN = process.env.API_TOKEN;
+
+const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 
 export async function POST(request: NextRequest) {
     try {
+        // Basic origin and token check (optional if env not set)
+        const origin = request.headers.get("origin") || request.headers.get("Origin");
+        const token = request.headers.get("X-APP-KEY");
+        if (APP_ORIGIN && origin !== APP_ORIGIN) {
+            return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+        }
+        if (API_TOKEN && token !== API_TOKEN) {
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+        }
+
         const body = await request.json();
         const { videoId, options } = body;
 
         if (!videoId) {
             return NextResponse.json(
                 { success: false, error: "Video ID is required" },
+                { status: 400 }
+            );
+        }
+
+        if (!VIDEO_ID_RE.test(videoId)) {
+            return NextResponse.json(
+                { success: false, error: "Invalid Video ID" },
                 { status: 400 }
             );
         }
@@ -28,12 +49,11 @@ export async function POST(request: NextRequest) {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            console.error("Python API error:", error);
+            console.error("Python API error status", response.status);
             return NextResponse.json(
                 {
                     success: false,
-                    error: error.detail || "Failed to extract transcript",
+                    error: "Failed to extract transcript",
                 },
                 { status: response.status }
             );
@@ -50,7 +70,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
             {
                 success: false,
-                error: `Failed to extract transcript: ${errorMessage}`,
+                error: "Failed to extract transcript",
             },
             { status: 400 }
         );
