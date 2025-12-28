@@ -17,6 +17,7 @@ import {
   normalizePlaylistUrl,
   normalizeChannelUrl
 } from "@/utils/youtube";
+import { ASSETS } from "@/constants";
 
 export type InputMode = "single" | "playlist" | "channel";
 
@@ -77,7 +78,7 @@ export default function ExtractorPage() {
       return {
         id: videoId,
         title: videoMetadata?.title || 'Video',
-        thumbnail: videoMetadata?.thumbnail || '',
+        thumbnail: videoMetadata?.thumbnail || ASSETS.defaultThumbnail,
         transcript: data.transcript,
         wordCount: data.wordCount,
         status: 'success' as const
@@ -86,7 +87,7 @@ export default function ExtractorPage() {
       return {
         id: videoId,
         title: videoMetadata?.title || 'Video',
-        thumbnail: videoMetadata?.thumbnail || '',
+        thumbnail: videoMetadata?.thumbnail || ASSETS.defaultThumbnail,
         transcript: '',
         wordCount: 0,
         status: 'failed' as const,

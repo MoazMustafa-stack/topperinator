@@ -1,0 +1,229 @@
+{
+  "info": {
+    "_postman_id": "035304b1-6ca1-469d-be9e-68287762e5b1",
+    "name": "Topperinator API Collection",
+    "description": "Complete API collection for testing Topperinator endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Python Backend (FastAPI)",
+      "item": [
+        {
+          "name": "Root Endpoint",
+          "id": "129e6b79-7257-45cb-b87c-778ff6533de5",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                ""
+              ]
+            },
+            "description": "Get API information and available endpoints"
+          },
+          "response": []
+        },
+        {
+          "name": "Health Check",
+          "id": "24e2b4f3-abf7-4cfe-8580-fed0e56cb355",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/health",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Check if the Python backend is running and healthy"
+          },
+          "response": []
+        },
+        {
+          "name": "Extract Transcript - Basic",
+          "id": "59b664b9-794a-4b03-957d-f478349a3783",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"videoId\": \"dQw4w9WgXcQ\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/api/extract",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "extract"
+              ]
+            },
+            "description": "Extract YouTube transcript in default format (txt, no timestamps)"
+          },
+          "response": []
+        }
+      ],
+      "id": "7194bdba-6745-4ab5-85a6-756eb07ae4bf",
+      "description": "Python FastAPI backend running on port 8000"
+    },
+    {
+      "name": "Next.js API Routes",
+      "item": [
+        {
+          "name": "Extract Transcript - Basic",
+          "id": "2e1c2b61-5059-413c-afe8-3ae55b2684a7",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"videoId\": \"dQw4w9WgXcQ\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/extract",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "extract"
+              ]
+            },
+            "description": "Extract YouTube transcript via Next.js API route (proxies to Python backend)"
+          },
+          "response": []
+        },
+        {
+          "name": "Extract Transcript - With Options",
+          "id": "35d42673-8193-4853-82e4-adbfc6e00e8f",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"videoId\": \"dQw4w9WgXcQ\",\n    \"options\": {\n        \"format\": \"json\",\n        \"includeTimestamps\": true\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/extract",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "extract"
+              ]
+            },
+            "description": "Extract transcript with custom format and timestamp options"
+          },
+          "response": []
+        },
+        {
+          "name": "Auth Callback",
+          "id": "3bae9ea8-0d18-47a1-8d4a-fc4a2769b939",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/auth/callback?code=test_code&redirect_to=/dashboard",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "auth",
+                "callback"
+              ],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "test_code",
+                  "description": "OAuth authorization code from Supabase"
+                },
+                {
+                  "key": "redirect_to",
+                  "value": "/dashboard",
+                  "description": "Optional redirect path after authentication"
+                }
+              ]
+            },
+            "description": "OAuth callback handler for Supabase authentication. This will redirect, so use in browser or check redirect response."
+          },
+          "response": []
+        }
+      ],
+      "id": "5344915f-8d48-4527-938d-82fe0f78ec66",
+      "description": "Next.js API routes running on port 3000"
+    }
+  ],
+  "variable": [
+    {
+      "id": "32dd48a8-c0a9-4a19-aade-0c9710908346",
+      "key": "python_backend_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "id": "2f80c4ca-f50c-41a8-ad8a-90e3992528d8",
+      "key": "nextjs_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "id": "560a1b2e-2c15-45ef-85a8-9496ca9d636a",
+      "key": "test_video_id",
+      "value": "dQw4w9WgXcQ",
+      "type": "string",
+      "description": "Test YouTube video ID (Rick Astley - Never Gonna Give You Up)"
+    }
+  ]
+}

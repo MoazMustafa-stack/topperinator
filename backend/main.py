@@ -5,6 +5,9 @@ import yt_dlp
 import json
 from typing import Optional, List
 
+# Default thumbnail for videos without thumbnails
+DEFAULT_THUMBNAIL = "/assets/images/default-thumbnail.svg"
+
 app = FastAPI(title="Topperinator API", version="1.0.0")
 
 app.add_middleware(
@@ -204,26 +207,40 @@ def extract_playlist_videos(playlist_url: str) -> dict:
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
-            'extract_flat': False,  # Get full video info
+            'extract_flat': 'in_playlist',  # Extract flat for faster performance
             'skip_download': True,
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            print(f"Extracting playlist info from: {playlist_url}")
             info = ydl.extract_info(playlist_url, download=False)
             
             videos = []
             playlist_name = info.get('title', 'Playlist')
             
-            if 'entries' in info:
-                for entry in info['entries']:
-                    if entry and entry.get('id'):
-                        videos.append({
-                            'id': entry['id'],
-                            'title': entry.get('title', 'Unknown'),
-                            'thumbnail': entry.get('thumbnail', ''),
-                            'channelName': entry.get('channel', '')
-                        })
+            print(f"Playlist name: {playlist_name}")
+            print(f"Found {len(info.get('entries', []))} entries")
             
+            if 'entries' in info:
+                for idx, entry in enumerate(info['entries']):
+                    if entry is None:
+                        print(f"Skipping None entry at index {idx}")
+                        continue
+                    
+                    video_id = entry.get('id')
+                    if not video_id:
+                        print(f"No ID found for entry at index {idx}")
+                        continue
+                    
+                    print(f"Adding video {idx + 1}: {video_id} - {entry.get('title', 'Unknown')}")
+                    videos.append({
+                        'id': video_id,
+                        'title': entry.get('title', 'Unknown'),
+                        'thumbnail': entry.get('thumbnail') or (entry.get('thumbnails', [{}])[0].get('url') if entry.get('thumbnails') else None) or DEFAULT_THUMBNAIL,
+                        'channelName': entry.get('channel', '')
+                    })
+            
+            print(f"Successfully extracted {len(videos)} videos from playlist")
             return {
                 "success": True,
                 "videos": videos,
@@ -243,27 +260,46 @@ def extract_channel_videos(channel_url: str, max_videos: int = 50) -> dict:
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
-            'extract_flat': False,
+            'extract_flat': 'in_playlist',  # Extract flat for faster performance
             'skip_download': True,
             'playlistend': max_videos,  # Limit number of videos
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            print(f"Extracting channel info from: {channel_url}")
             info = ydl.extract_info(channel_url, download=False)
             
             videos = []
-            channel_name = info.get('channel', 'Channel')
+            channel_name = info.get('channel', info.get('uploader', info.get('title', 'Channel')))
+            
+            print(f"Channel name: {channel_name}")
+            print(f"Found {len(info.get('entries', []))} entries")
             
             if 'entries' in info:
-                for entry in info['entries']:
-                    if entry and entry.get('id'):
-                        videos.append({
-                            'id': entry['id'],
-                            'title': entry.get('title', 'Unknown'),
-                            'thumbnail': entry.get('thumbnail', ''),
-                            'channelName': entry.get('channel', channel_name)
-                        })
+                for idx, entry in enumerate(info['entries']):
+                    if entry is None:
+                        print(f"Skipping None entry at index {idx}")
+                        continue
+                    
+                    video_id = entry.get('id')
+                    if not video_id:
+                        print(f"No ID found for entry at index {idx}: {entry}")
+                        continue
+                    
+                    # Ensure we're not using channel IDs as video IDs
+                    if video_id.startswith('UC') and len(video_id) > 15:
+                        print(f"Skipping channel ID mistaken as video ID: {video_id}")
+                        continue
+                    
+                    print(f"Adding video {idx + 1}: {video_id} - {entry.get('title', 'Unknown')}")
+                    videos.append({
+                        'id': video_id,
+                        'title': entry.get('title', 'Unknown'),
+                        'thumbnail': entry.get('thumbnail') or (entry.get('thumbnails', [{}])[0].get('url') if entry.get('thumbnails') else None) or DEFAULT_THUMBNAIL,
+                        'channelName': entry.get('channel', channel_name)
+                    })
             
+            print(f"Successfully extracted {len(videos)} videos from channel")
             return {
                 "success": True,
                 "videos": videos,

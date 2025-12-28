@@ -6,8 +6,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { InputMode, TranscriptOptions, VideoMetadata } from "@/app/extractor/page";
 import { useEffect, useState } from "react";
-import { COLORS, API_ENDPOINTS, VALIDATION, YOUTUBE_PATTERNS } from "@/constants";
+import { ASSETS } from "@/constants";
 import URLValidator from "./URLValidator";
+
+const VALIDATION = {
+  debounceDelay: 500,
+};
+
+const YOUTUBE_PATTERNS = {
+  videoId: [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+    /youtube\.com\/embed\/([^&\n?#]+)/,
+    /youtube\.com\/v\/([^&\n?#]+)/,
+  ],
+};
 
 interface InputModuleProps {
   inputMode: InputMode;
@@ -73,13 +85,13 @@ export default function InputModule({
 
   const fetchVideoMetadata = async (videoId: string): Promise<VideoMetadata | null> => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.youtube.oembed}?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+      const response = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
       if (!response.ok) return null;
       const data = await response.json();
       return {
         id: videoId,
         title: data.title,
-        thumbnail: data.thumbnail_url,
+        thumbnail: data.thumbnail_url || ASSETS.defaultThumbnail,
         channelName: data.author_name,
       };
     } catch {
@@ -118,7 +130,7 @@ export default function InputModule({
           setMetadata({
             id: playlistId,
             title: 'Playlist',
-            thumbnail: '',
+            thumbnail: ASSETS.defaultThumbnail,
             playlistName: 'Playlist'
           });
         } else {
@@ -132,12 +144,12 @@ export default function InputModule({
           setMetadata({
             id: channelId,
             title: 'Channel',
-            thumbnail: '',
+            thumbnail: ASSETS.defaultThumbnail,
             channelName: channelId
           });
         } else {
           setIsValid(false);
-          setMetadata(null);
+    b      setMetadata(null);
         }
       }
       setIsValidating(false);
