@@ -29,8 +29,9 @@ export function UrlProvider({ children }: UrlProviderProps) {
   // Clone children and add the currentUrl as a hidden input
   const childrenWithUrl = React.Children.map(children, (child) => {
     if (React.isValidElement(child) && child.type === 'form') {
+      const formChild = child as React.ReactElement<{ children?: React.ReactNode }>;
       return React.cloneElement(child, {}, [
-        ...React.Children.toArray(child.props.children),
+        ...React.Children.toArray(formChild.props.children),
         <input key="site-url-input" type="hidden" name="site_url" value={currentUrl} />
       ]);
     }
