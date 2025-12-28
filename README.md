@@ -1,89 +1,79 @@
 # Topper-inator
 
-> **Never miss a lecture again** ✨ Extract YouTube transcripts instantly with a sleek, modern interface.
+> **YouTube Transcript Extractor at Scale** - Extract transcripts from single videos, playlists, or entire channels instantly.
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)](https://react.dev)
-[![Python](https://img.shields.io/badge/Python-3.8+-blue?style=flat-square&logo=python)](https://python.org)
-[![Tailwind](https://img.shields.io/badge/Tailwind-CSS-blue?style=flat-square&logo=tailwind-css)](https://tailwindcss.com)
-
-## What is Topper-inator?
-
-A full-stack web application that transforms YouTube videos into readable transcripts. Perfect for students who want to:
-- 📚 Study lectures without watching the entire video
-- 🎯 Search through transcript content instantly
-- 📝 Export in multiple formats (TXT, JSON, SRT)
-- 🔐 Save your favorite transcripts securely
+[![Python](https://img.shields.io/badge/Python-3.13-blue?style=flat-square&logo=python)](https://python.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://typescriptlang.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
 
 ---
 
-## Why Build This?
+## Features
 
-YouTube transcripts are goldmines for learning, but accessing them is clunky. Topper-inator makes it seamless—paste a link, get a transcript, study smarter. Built as a learning project showcasing modern full-stack development with Next.js and Python.
+### Core Functionality
+-  **Single Video Extraction** - Extract transcript from any YouTube video
+-  **Playlist Mode** - Batch extract from entire playlists
+-  **Channel Mode** - Extract from channel's videos (up to 50 videos)
+-  **Multiple Formats** - Export as TXT, JSON, or SRT
+-  **Timestamp Options** - Toggle timestamp inclusion
+-  **Real-time Progress** - Live status updates during batch extraction
+
+### User Interface
+
+-  **URL Validation** - Real-time YouTube URL verification
+-  **Metadata Preview** - Shows video/channel info before extraction
+-  **Stats Dashboard** - Success/failure counts, total word count
+-  **Bulk Actions** - Download all as ZIP, copy all to clipboard
+-  **Help Section** - Interactive guide for features
+
+### Technical
+-  **Authentication** - Supabase Auth with protected routes
+-  **Database** - PostgreSQL with Row-Level Security
+-  **Error Handling** - Graceful failures with detailed error messages
+-  **Default Thumbnails** - Fallback SVG for videos without thumbnails
+-  **API Testing** - Postman collections included
 
 ---
 
 ## Tech Stack
 
-**Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui  
-**Backend**: FastAPI (Python), yt-dlp  
-**Database**: Supabase (Auth + PostgreSQL)  
+**Frontend**
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS
+- shadcn/ui components
+- JSZip for bulk downloads
+
+**Backend**
+- FastAPI (Python)
+- yt-dlp for YouTube extraction
+- Uvicorn server
+
+**Database & Auth**
+- Supabase (PostgreSQL + Auth)
+
+
+
+## Contributing
+
+Contributions welcome! Please feel free to submit issues or pull requests.
 
 ---
 
-## Features at a Glance
-
-✨ **Smart Extraction** - Pulls transcripts directly from YouTube with zero hassle  
-🎨 **Beautiful UI** - Modern, responsive design that feels great on any device  
-🔒 **Secure Auth** - User authentication via Supabase  
-📤 **Multiple Formats** - Export as TXT, JSON, or SRT subtitle files  
-⚡ **Fast Processing** - Optimized backend for instant results  
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## Architecture
+## Maintenance mode
 
-```
-Frontend (Next.js) → API Proxy → Python Backend (FastAPI) → YouTube
-```
-
-Clean separation: React UI handles the beautiful frontend, Python handles the heavy lifting of transcript extraction.
+- Toggle via env: set `NEXT_PUBLIC_MAINTENANCE_MODE=true` to route auth pages (sign-in, sign-up, forgot/reset password) to `/maintenance`.
+- Admin/test bypass: set cookie `maintenance_bypass=1` to skip maintenance for yourself.
+- Page location: [src/app/maintenance/page.tsx](src/app/maintenance/page.tsx)
 
 ---
 
-## Project Structure
-
-```
-topperinator/
-├── src/                 # React/Next.js code
-│   ├── app/            # Pages and API routes
-│   ├── components/      # Reusable UI components
-│   ├── lib/            # Utilities and helpers
-│   └── ...
-├── backend/            # Python FastAPI server
-│   ├── main.py         # FastAPI app with transcript extraction
-│   └── requirements.txt # Dependencies
-└── ...
-```
-
----
-
-## Built For Learning
-
-This project demonstrates:
-- Full-stack web development with modern frameworks
-- Frontend-backend integration and API design
-- Python async programming with FastAPI
-- User authentication and secure databases
-
-Perfect for portfolio projects, learning full-stack development, or understanding how to integrate multiple technologies.
-
----
-
-## Community
-
-Have ideas for Topper-inator? Love transcripts? Found a bug? Contributions welcome!
-
----
-
-*Built by a student, for students.* 🚀
+*Built for students by a student*
