@@ -5,7 +5,6 @@ const PYTHON_API_URL = process.env.PYTHON_API_URL || process.env.NEXT_PUBLIC_PYT
 
 const nextConfig: NextConfig = {
   devIndicators: {
-    appIsrStatus: false,
     buildActivity: false,
     buildActivityPosition: 'bottom-right',
   },
