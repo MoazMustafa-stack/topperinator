@@ -8,6 +8,7 @@ import time
 import json
 from typing import Optional, List
 import os
+import uuid
 
 # Default thumbnail for videos without thumbnails
 DEFAULT_THUMBNAIL = "/assets/images/default-thumbnail.svg"
@@ -58,6 +59,10 @@ class VideoListResponse(BaseModel):
 RATE_LIMIT_MAX = 16
 RATE_LIMIT_WINDOW_SECONDS = 14 * 24 * 60 * 60
 _rate_limit_store: dict[str, list[float]] = {}
+
+
+def log_event(event: str, **fields):
+    print(json.dumps({"event": event, **fields}))
 
 
 def enforce_rate_limit(ip: str):
@@ -204,6 +209,8 @@ async def extract_transcript(req: Request, request: ExtractRequest):
     """Extract YouTube transcript"""
 
     enforce_rate_limit(req.client.host if req.client else "unknown")
+    start_time = time.perf_counter()
+    request_id = req.headers.get("x-request-id") or str(uuid.uuid4())
     
     if not request.videoId:
         raise HTTPException(status_code=400, detail="videoId is required")
@@ -212,15 +219,38 @@ async def extract_transcript(req: Request, request: ExtractRequest):
     format = options.get('format', 'txt')
     include_timestamps = options.get('includeTimestamps', False)
     
-    print(f"=== Transcript Extraction Request ===")
-    print(f"Video ID: {request.videoId}")
-    print(f"Format: {format}, Include timestamps: {include_timestamps}")
+    log_event(
+        "extract.request",
+        requestId=request_id,
+        videoId=request.videoId,
+        format=format,
+        includeTimestamps=include_timestamps,
+        ts=time.time(),
+    )
     
     result = extract_subtitles(request.videoId, format, include_timestamps)
 
     if not result.get('success'):
+        duration_ms = int((time.perf_counter() - start_time) * 1000)
+        log_event(
+            "extract.response",
+            requestId=request_id,
+            success=False,
+            durationMs=duration_ms,
+            error=result.get("error"),
+            ts=time.time(),
+        )
         raise HTTPException(status_code=400, detail="Failed to extract transcript")
 
+    duration_ms = int((time.perf_counter() - start_time) * 1000)
+    log_event(
+        "extract.response",
+        requestId=request_id,
+        success=True,
+        durationMs=duration_ms,
+        wordCount=result.get("wordCount"),
+        ts=time.time(),
+    )
     return ExtractResponse(
         success=True,
         transcript=result['transcript'],
@@ -365,6 +395,8 @@ def extract_channel_videos(channel_url: str, max_videos: int = 50) -> dict:
 async def get_playlist_videos(req: Request, request: PlaylistRequest):
     """Get list of videos from a YouTube playlist"""
     enforce_rate_limit(req.client.host if req.client else "unknown")
+    start_time = time.perf_counter()
+    request_id = req.headers.get("x-request-id") or str(uuid.uuid4())
     if not request.playlistUrl:
         raise HTTPException(status_code=400, detail="playlistUrl is required")
 
@@ -375,8 +407,26 @@ async def get_playlist_videos(req: Request, request: PlaylistRequest):
     result = extract_playlist_videos(request.playlistUrl)
 
     if not result.get('success'):
+        duration_ms = int((time.perf_counter() - start_time) * 1000)
+        log_event(
+            "playlist.response",
+            requestId=request_id,
+            success=False,
+            durationMs=duration_ms,
+            error=result.get("error"),
+            ts=time.time(),
+        )
         raise HTTPException(status_code=400, detail="Failed to fetch playlist videos")
 
+    duration_ms = int((time.perf_counter() - start_time) * 1000)
+    log_event(
+        "playlist.response",
+        requestId=request_id,
+        success=True,
+        durationMs=duration_ms,
+        videoCount=len(result.get("videos", [])),
+        ts=time.time(),
+    )
     return VideoListResponse(
         success=True,
         videos=result['videos'],
@@ -387,6 +437,8 @@ async def get_playlist_videos(req: Request, request: PlaylistRequest):
 async def get_channel_videos(req: Request, request: ChannelRequest):
     """Get list of videos from a YouTube channel"""
     enforce_rate_limit(req.client.host if req.client else "unknown")
+    start_time = time.perf_counter()
+    request_id = req.headers.get("x-request-id") or str(uuid.uuid4())
     if not request.channelUrl:
         raise HTTPException(status_code=400, detail="channelUrl is required")
 
@@ -404,8 +456,26 @@ async def get_channel_videos(req: Request, request: ChannelRequest):
     result = extract_channel_videos(request.channelUrl, max_videos)
 
     if not result.get('success'):
+        duration_ms = int((time.perf_counter() - start_time) * 1000)
+        log_event(
+            "channel.response",
+            requestId=request_id,
+            success=False,
+            durationMs=duration_ms,
+            error=result.get("error"),
+            ts=time.time(),
+        )
         raise HTTPException(status_code=400, detail="Failed to fetch channel videos")
 
+    duration_ms = int((time.perf_counter() - start_time) * 1000)
+    log_event(
+        "channel.response",
+        requestId=request_id,
+        success=True,
+        durationMs=duration_ms,
+        videoCount=len(result.get("videos", [])),
+        ts=time.time(),
+    )
     return VideoListResponse(
         success=True,
         videos=result['videos'],

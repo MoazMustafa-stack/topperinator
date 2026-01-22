@@ -8,6 +8,8 @@ const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 
 export async function POST(request: NextRequest) {
     try {
+        const requestId = crypto.randomUUID();
+        const startTime = Date.now();
         // Basic origin and token check (optional if env not set)
         const origin = request.headers.get("origin") || request.headers.get("Origin");
         const token = request.headers.get("X-APP-KEY");
@@ -35,8 +37,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        console.log(`=== Transcript Extraction Request ===`);
-        console.log(`Video ID: ${videoId}`);
+        console.log(
+            JSON.stringify({
+                event: "extract.request",
+                requestId,
+                videoId,
+                ts: new Date().toISOString(),
+            })
+        );
         console.log(`Forwarding to Python API: ${PYTHON_API_URL}`);
 
         // Call Python backend
@@ -44,12 +52,23 @@ export async function POST(request: NextRequest) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "X-Request-Id": requestId,
             },
             body: JSON.stringify({ videoId, options }),
         });
 
         if (!response.ok) {
             console.error("Python API error status", response.status);
+            console.log(
+                JSON.stringify({
+                    event: "extract.response",
+                    requestId,
+                    status: response.status,
+                    success: false,
+                    durationMs: Date.now() - startTime,
+                    ts: new Date().toISOString(),
+                })
+            );
             return NextResponse.json(
                 {
                     success: false,
@@ -60,7 +79,17 @@ export async function POST(request: NextRequest) {
         }
 
         const result = await response.json();
-        console.log(`✓ Transcript extracted. Word count: ${result.wordCount}`);
+        console.log(
+            JSON.stringify({
+                event: "extract.response",
+                requestId,
+                status: response.status,
+                success: true,
+                wordCount: result.wordCount,
+                durationMs: Date.now() - startTime,
+                ts: new Date().toISOString(),
+            })
+        );
 
         return NextResponse.json(result);
     } catch (error: unknown) {

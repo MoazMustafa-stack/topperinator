@@ -16,6 +16,8 @@ function isAllowedYouTubeUrl(url: string): boolean {
 
 export async function POST(request: NextRequest) {
     try {
+        const requestId = crypto.randomUUID();
+        const startTime = Date.now();
         const origin = request.headers.get("origin") || request.headers.get("Origin");
         const token = request.headers.get("X-APP-KEY");
         if (APP_ORIGIN && origin !== APP_ORIGIN) {
@@ -47,19 +49,37 @@ export async function POST(request: NextRequest) {
         if (safeMax < 1) safeMax = 1;
         if (safeMax > 50) safeMax = 50;
 
-        console.log(`=== Channel Extraction Request ===`);
-        console.log(`Channel URL: ${channelUrl}`);
+        console.log(
+            JSON.stringify({
+                event: "channel.request",
+                requestId,
+                channelUrl,
+                maxVideos: safeMax,
+                ts: new Date().toISOString(),
+            })
+        );
 
         const response = await fetch(`${PYTHON_API_URL}/api/channel/videos`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "X-Request-Id": requestId,
             },
             body: JSON.stringify({ channelUrl, maxVideos: safeMax }),
         });
 
         if (!response.ok) {
             console.error("Python API error status", response.status);
+            console.log(
+                JSON.stringify({
+                    event: "channel.response",
+                    requestId,
+                    status: response.status,
+                    success: false,
+                    durationMs: Date.now() - startTime,
+                    ts: new Date().toISOString(),
+                })
+            );
             return NextResponse.json(
                 {
                     success: false,
@@ -70,7 +90,17 @@ export async function POST(request: NextRequest) {
         }
 
         const result = await response.json();
-        console.log(`Channel extracted. Videos: ${result.videos?.length || 0}`);
+        console.log(
+            JSON.stringify({
+                event: "channel.response",
+                requestId,
+                status: response.status,
+                success: true,
+                videoCount: result.videos?.length || 0,
+                durationMs: Date.now() - startTime,
+                ts: new Date().toISOString(),
+            })
+        );
 
         return NextResponse.json(result);
     } catch (error: unknown) {
